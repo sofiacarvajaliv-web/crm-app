@@ -15,7 +15,7 @@ Define la variable `VITE_API_URL` con la URL pública del backend terminada en `
 
 ## Módulos construidos hasta ahora
 Inicio de sesión / creación del administrador inicial, Panel (indicadores reales), Clientes (CRUD, búsqueda, filtros, orden, paginación, historial), Empresas (CRUD y contactos asociados), Oportunidades (tablero Kanban con arrastrar y soltar), Actividades (registro, filtros e historial por cliente), Tareas (prioridad, estados, vencidas y filtros).
-Pendiente: Usuarios (solo administrador).
+Usuarios (solo administrador: crear, editar rol, contraseña, desactivar y reactivar). **Todos los módulos funcionales están construidos.**
 
 ## Estructura
 `src/pages` · `src/components` · `src/layouts` · `src/context` · `src/hooks` · `src/services`

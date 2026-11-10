@@ -72,7 +72,7 @@ export default function AppLayout() {
 
   const links = (
     <nav className="flex-1 space-y-1 px-3" aria-label="Principal">
-      {NAV.map((n) => (
+      {NAV.filter((n) => !n.adminOnly || user.role === 'admin').map((n) => (
         <NavLink key={n.to} to={n.to} end={n.end}
           className={({ isActive }) => `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${isActive ? 'bg-brand-600 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}>
           <Icon name={n.icon} />{n.label}

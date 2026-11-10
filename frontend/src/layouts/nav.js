@@ -6,4 +6,5 @@ export const NAV = [
   { to: '/oportunidades', label: 'Oportunidades', icon: 'target' },
   { to: '/actividades', label: 'Actividades', icon: 'activity' },
   { to: '/tareas', label: 'Tareas', icon: 'check' },
+  { to: '/usuarios', label: 'Usuarios', icon: 'shield', adminOnly: true },
 ];

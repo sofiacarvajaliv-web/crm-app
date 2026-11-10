@@ -8,6 +8,7 @@ import CompaniesPage from './pages/CompaniesPage';
 import OpportunitiesPage from './pages/OpportunitiesPage';
 import ActivitiesPage from './pages/ActivitiesPage';
 import TasksPage from './pages/TasksPage';
+import UsersPage from './pages/UsersPage';
 
 export default function App() {
   return (
@@ -21,6 +22,9 @@ export default function App() {
           <Route path="oportunidades" element={<OpportunitiesPage />} />
           <Route path="actividades" element={<ActivitiesPage />} />
           <Route path="tareas" element={<TasksPage />} />
+          <Route element={<ProtectedRoute adminOnly />}>
+            <Route path="usuarios" element={<UsersPage />} />
+          </Route>
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
