@@ -4,6 +4,7 @@ import { LABELS, date, dateTime } from '../services/format';
 import { useList } from '../hooks/useList';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import ActivityForm from '../components/ActivityForm';
 import { Badge, Button, ConfirmDialog, EmptyState, ErrorBox, Field, Modal, PageHeader, Pagination, SearchInput, SortHeader, Spinner, inputCls } from '../components/ui';
 
 const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -86,11 +87,13 @@ function ClientForm({ client, onClose, onSaved }) {
 
 function ClientHistory({ client, onClose }) {
   const [state, setState] = useState({ loading: true, data: [], error: null });
+  const [adding, setAdding] = useState(false);
+  const [tick, setTick] = useState(0);
   useEffect(() => {
     api.get(`/clients/${client._id}/activities`, { params: { limit: 50 } })
       .then((r) => setState({ loading: false, data: r.data.data, error: null }))
       .catch((e) => setState({ loading: false, data: [], error: parseError(e).message }));
-  }, [client._id]);
+  }, [client._id, tick]);
   const row = (k, v) => v ? <div><dt className="text-xs text-muted">{k}</dt><dd className="font-semibold">{v}</dd></div> : null;
   return (
     <Modal title={client.fullName} onClose={onClose} wide>
@@ -100,7 +103,7 @@ function ClientHistory({ client, onClose }) {
         {row('Registrado', date(client.registeredAt))}
       </dl>
       {client.notes && <p className="mt-3 rounded-lg bg-paper p-3 text-sm text-muted">{client.notes}</p>}
-      <h3 className="mb-2 mt-6 font-bold">Historial de actividades</h3>
+      <div className="mb-2 mt-6 flex items-center justify-between"><h3 className="font-bold">Historial de actividades</h3><Button onClick={() => setAdding(true)}>Registrar actividad</Button></div>
       {state.loading ? <div className="py-8 text-center"><Spinner /></div> : state.error ? <ErrorBox message={state.error} /> : state.data.length === 0 ? (
         <p className="rounded-lg border border-dashed border-line p-6 text-center text-sm text-muted">Este cliente aún no tiene interacciones registradas.</p>
       ) : (
@@ -115,6 +118,7 @@ function ClientHistory({ client, onClose }) {
           ))}
         </ul>
       )}
+      {adding && <ActivityForm presetClient={client} onClose={() => setAdding(false)} onSaved={() => { setAdding(false); setTick((t) => t + 1); }} />}
     </Modal>
   );
 }

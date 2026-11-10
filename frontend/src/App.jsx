@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import ClientsPage from './pages/ClientsPage';
 import CompaniesPage from './pages/CompaniesPage';
 import OpportunitiesPage from './pages/OpportunitiesPage';
+import ActivitiesPage from './pages/ActivitiesPage';
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="clientes" element={<ClientsPage />} />
           <Route path="empresas" element={<CompaniesPage />} />
           <Route path="oportunidades" element={<OpportunitiesPage />} />
+          <Route path="actividades" element={<ActivitiesPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

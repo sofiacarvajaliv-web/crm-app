@@ -18,3 +18,10 @@ export const LABELS = {
   priority: { baja: 'Baja', media: 'Media', alta: 'Alta' },
   role: { admin: 'Administrador', advisor: 'Asesor comercial' },
 };
+
+// Fechas sin hora (p. ej. cierre estimado): se muestran en UTC para que no retrocedan un día en husos como Colombia.
+export const dateOnly = (d) => (d ? new Date(d).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '—');
+const pad = (n) => String(n).padStart(2, '0');
+// Valores locales para <input type="datetime-local"> y <input type="date">
+export const toLocalDateTime = (d = new Date()) => { const x = new Date(d); return `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}T${pad(x.getHours())}:${pad(x.getMinutes())}`; };
+export const toLocalDate = (d) => (d ? toLocalDateTime(d).slice(0, 10) : '');

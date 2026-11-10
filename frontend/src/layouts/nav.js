@@ -4,4 +4,5 @@ export const NAV = [
   { to: '/clientes', label: 'Clientes', icon: 'users' },
   { to: '/empresas', label: 'Empresas', icon: 'building' },
   { to: '/oportunidades', label: 'Oportunidades', icon: 'target' },
+  { to: '/actividades', label: 'Actividades', icon: 'activity' },
 ];

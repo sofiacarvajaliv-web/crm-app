@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import api, { parseError } from '../services/api';
-import { LABELS, date, money, toInputDate } from '../services/format';
+import { LABELS, dateOnly, money, toInputDate } from '../services/format';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { Button, ConfirmDialog, ErrorBox, Field, Modal, PageHeader, SearchInput, Spinner, inputCls } from '../components/ui';
@@ -86,7 +86,7 @@ function Card({ opp, onEdit, onDelete, onMove }) {
       <p className="font-bold leading-snug">{opp.title}</p>
       <p className="mt-0.5 text-muted">{opp.client?.fullName}{opp.company ? ` · ${opp.company.name}` : ''}</p>
       <p className="mt-2 text-base font-extrabold text-brand-700">{money(opp.estimatedValue)}</p>
-      <p className="text-xs text-muted">Cierre: {date(opp.expectedCloseDate)} · {opp.owner?.name}</p>
+      <p className="text-xs text-muted">Cierre: {dateOnly(opp.expectedCloseDate)} · {opp.owner?.name}</p>
       <div className="mt-2 flex items-center gap-1">
         <select aria-label={`Mover ${opp.title}`} value={opp.status} onChange={(e) => onMove(opp, e.target.value)} className="min-w-0 flex-1 rounded-md border border-line bg-paper px-1.5 py-1 text-xs font-semibold">
           {STATUSES.map((s) => <option key={s} value={s}>{LABELS.oppStatus[s]}</option>)}
