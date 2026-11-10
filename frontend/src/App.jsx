@@ -7,6 +7,7 @@ import ClientsPage from './pages/ClientsPage';
 import CompaniesPage from './pages/CompaniesPage';
 import OpportunitiesPage from './pages/OpportunitiesPage';
 import ActivitiesPage from './pages/ActivitiesPage';
+import TasksPage from './pages/TasksPage';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="empresas" element={<CompaniesPage />} />
           <Route path="oportunidades" element={<OpportunitiesPage />} />
           <Route path="actividades" element={<ActivitiesPage />} />
+          <Route path="tareas" element={<TasksPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

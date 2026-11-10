@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { LABELS } from '../services/format';
@@ -55,6 +55,9 @@ function Notifications() {
               <li><strong className="text-ink">{totals.openOpportunities}</strong> oportunidades abiertas</li>
             </ul>
           )}
+          <Link to={overdue > 0 ? '/tareas?vencidas=1' : '/tareas'} onClick={() => setOpen(false)} className="mt-3 block rounded-lg bg-brand-50 px-3 py-2 text-center text-sm font-semibold text-brand-700 hover:bg-brand-100">
+            {overdue > 0 ? 'Ver tareas vencidas' : 'Ir a tareas'}
+          </Link>
         </div>
       )}
     </div>
