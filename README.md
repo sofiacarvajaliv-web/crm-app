@@ -2,7 +2,7 @@
 
 CRM web con React + Vite + Tailwind, API REST con Node.js/Express y base de datos documental MongoDB Atlas.
 
-> **Estado:** Fases 1–3 completas (análisis, modelo de datos, backend). Fase 4–5 en curso: frontend con Inicio de sesión, Panel, Clientes y Empresas; faltan Oportunidades, Actividades, Tareas y Usuarios. Ver [backend](backend/README.md) y [frontend](frontend/README.md).
+> **Estado:** Fases 1–3 completas (análisis, modelo de datos, backend). Fase 4–5 en curso: frontend con Inicio de sesión, Panel, Clientes, Empresas y Oportunidades (Kanban); faltan Actividades, Tareas y Usuarios. Ver [backend](backend/README.md) y [frontend](frontend/README.md).
 
 ## Documentación
 - [Análisis y requerimientos](docs/analisis.md)
