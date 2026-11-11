@@ -61,4 +61,4 @@ Ver `backend/.env.example` y `frontend/.env.example`. **Nunca subas archivos `.e
 [Análisis y requerimientos](docs/analisis.md) · [Modelo de datos](docs/modelo-datos.md) · [Arquitectura](docs/arquitectura.md) · [Endpoints](docs/endpoints.md) · [Seguridad](docs/seguridad.md) · [Pruebas](docs/pruebas.md) · [Instalación y despliegue](docs/despliegue.md) · [Informe final](docs/informe-final.md)
 
 ## Integrantes
-_(Completar con nombres de los integrantes del equipo.)_
+Alejando Hincapie- Sofia Carvajal 
