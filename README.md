@@ -62,8 +62,12 @@ Con la base vacía, la pantalla de ingreso permite **crear el administrador inic
 |`npm test`|Ejecuta las pruebas (requiere `MONGODB\_URI\_TEST` con una base cuyo nombre contenga "test")|
 
 ## Variables de entorno
+ HEAD
 
 Ver `backend/.env.example` y `frontend/.env.example`. **Nunca subas archivos `.env` a GitHub.**
+
+Ver `backend/.env.example` y `frontend/.env.example`. 
+ 126a9f526d40ed04708475f1980573aacd7205b5
 
 ## Documentación
 
@@ -74,4 +78,5 @@ Ver `backend/.env.example` y `frontend/.env.example`. **Nunca subas archivos `.e
 *Sofia Carvajal* 
 
 *Manuel Alejandro Hernandez*
+
 
