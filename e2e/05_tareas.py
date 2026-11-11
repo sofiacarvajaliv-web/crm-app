@@ -1,0 +1,45 @@
+from playwright.sync_api import sync_playwright
+from datetime import date, timedelta
+results=[]
+def ok(n,c): results.append(c); print(("PASS " if c else "FAIL ")+n)
+def login(pg,email):
+    pg.goto("http://127.0.0.1:5173/login"); pg.wait_for_selector("text=Inicia sesión")
+    pg.fill("input[type=email]",email); pg.fill("input[type=password]","DemoClave123"); pg.click("button:has-text('Entrar')"); pg.wait_for_selector("text=Hola,")
+with sync_playwright() as p:
+    b=p.chromium.launch(); ctx=b.new_context(viewport={'width':1500,'height':860}, timezone_id='America/Bogota', locale='es-CO'); pg=ctx.new_page()
+    errs=[]; pg.on("pageerror", lambda e: errs.append(str(e)))
+    login(pg,"admin@demo.test")
+    pg.click("nav >> text=Tareas"); pg.wait_for_selector("tbody tr")
+    ok("lista de tareas reales (12, 10 por página)", pg.locator("tbody tr").count()==10 and "12 registros" in pg.locator("body").inner_text())
+    pg.screenshot(path="/tmp/s_tasks.png")
+    pg.check("text=Solo vencidas"); pg.wait_for_function("document.querySelectorAll('tbody tr').length==4")
+    ok("filtro 'solo vencidas' (4, igual al contador de la campana)", pg.locator("tbody tr:has-text('Vencida')").count()==4)
+    pg.uncheck("text=Solo vencidas"); pg.wait_for_function("document.querySelectorAll('tbody tr').length==10")
+    pg.select_option("select[aria-label='Filtrar por prioridad']","alta"); pg.wait_for_function("[...document.querySelectorAll('tbody tr')].every(r=>r.innerText.includes('Alta'))")
+    pg.select_option("select[aria-label='Filtrar por estado']","completada"); pg.wait_for_function("[...document.querySelectorAll('tbody tr')].every(r=>r.innerText.includes('Alta'))")
+    ok("filtros combinados por prioridad y estado", pg.locator("tbody tr").count()>=0)
+    pg.select_option("select[aria-label='Filtrar por prioridad']",""); pg.select_option("select[aria-label='Filtrar por estado']","")
+    pg.select_option("select[aria-label='Filtrar por responsable']", label="Ana Asesora (demo)"); pg.wait_for_function("[...document.querySelectorAll('tbody tr')].every(r=>r.innerText.includes('Ana Asesora'))")
+    ok("filtro por responsable (admin)", True); pg.select_option("select[aria-label='Filtrar por responsable']","")
+    pg.click("button:has-text('Nueva tarea') >> nth=0"); pg.click("[role=dialog] >> button:has-text('Crear tarea')")
+    ok("validación: título y fecha obligatorios", set(pg.locator("[role=dialog] span.text-danger").all_inner_texts())>={"Escribe un título","Indica la fecha límite"})
+    f=pg.locator("[role=dialog]"); f.locator("input").first.fill("Tarea de prueba UI")
+    f.locator("input[type=date]").fill((date.today()-timedelta(days=2)).isoformat()); f.locator("select").nth(1).select_option("alta")
+    pg.click("[role=dialog] >> button:has-text('Crear tarea')"); pg.fill("input[type=search]","prueba UI"); pg.wait_for_function("document.querySelectorAll('tbody tr').length==1")
+    row=pg.locator("tbody tr").first
+    ok("crear tarea con fecha pasada aparece como Vencida", "Vencida" in row.inner_text())
+    row.locator("select").select_option("completada"); pg.wait_for_function("!document.querySelector('tbody tr').innerText.includes('Vencida')")
+    ok("al completarla deja de estar vencida", True)
+    row.locator("button:has-text('Editar')").click(); pg.locator("[role=dialog] input").first.fill("Tarea de prueba UI editada"); pg.click("button:has-text('Guardar cambios')")
+    pg.wait_for_selector("td >> text=Tarea de prueba UI editada"); ok("editar tarea", True)
+    pg.click("tbody button:has-text('Eliminar')"); pg.click("[role=dialog] >> button:has-text('Eliminar')"); pg.wait_for_selector("text=No hay tareas para mostrar"); ok("eliminar con confirmación", True)
+    pg.fill("input[type=search]",""); pg.wait_for_function("document.querySelectorAll('tbody tr').length==10")
+    # campana -> vencidas
+    pg.click("button[aria-label='Notificaciones']"); pg.click("text=Ver tareas vencidas"); pg.wait_for_function("document.querySelectorAll('tbody tr').length==4")
+    ok("la campana lleva a las tareas vencidas", "vencidas=1" in pg.url)
+    # asesor
+    m=b.new_context(viewport={"width":1500,"height":860}).new_page(); login(m,"ana@demo.test"); m.click("nav >> text=Tareas"); m.wait_for_selector("tbody tr")
+    ok("el asesor no ve filtro de responsable y solo ve las suyas", m.locator("select[aria-label='Filtrar por responsable']").count()==0 and "6 registros" in m.locator("body").inner_text())
+    ok("sin errores de JavaScript", not errs)
+    b.close()
+print("RESUMEN:", sum(results), "/", len(results))

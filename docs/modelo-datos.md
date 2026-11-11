@@ -134,7 +134,11 @@ Referencia: https://www.mongodb.com/docs/manual/data-modeling/
 ```
 
 ## Reglas de integridad a nivel de aplicación
-- No se elimina un cliente con oportunidades abiertas sin confirmar; al eliminarlo se eliminan sus actividades y tareas (o se bloquea, según decisión en Fase 3: **se bloquea si tiene oportunidades**).
-- No se elimina una empresa con clientes asociados (se bloquea con mensaje claro).
-- Un asesor solo ve/edita registros donde es `owner`/`assignedTo`.
-- Referencias validadas (existencia del ObjectId) antes de guardar.
+- Un cliente con oportunidades asociadas **no se puede eliminar** (respuesta 409). Si no las tiene, al eliminarlo se eliminan también sus actividades y tareas.
+- Una empresa con clientes u oportunidades asociados **no se puede eliminar** (409).
+- Los usuarios **no se eliminan**: se desactivan (conservan su historial) y pueden reactivarse. Un usuario desactivado no puede iniciar sesión y su token deja de ser válido de inmediato.
+- Un asesor solo ve y edita los registros donde es responsable (`assignedTo` en clientes y tareas; `owner` en oportunidades y actividades) y no puede reasignarlos. Las empresas son compartidas.
+- Antes de guardar se verifica que los `ObjectId` referenciados existan (y, para asesores, que el cliente sea suyo).
+- Si una oportunidad no indica empresa, hereda la del cliente.
+- El próximo seguimiento de una actividad no puede ser anterior a su fecha (validador de Mongoose).
+- Los campos desconocidos enviados al API se descartan (Zod), evitando asignación masiva.

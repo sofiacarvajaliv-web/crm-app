@@ -1,0 +1,20 @@
+# Blueprint de Render para el backend (opcional: también puede configurarse a mano en el panel).
+services:
+  - type: web
+    name: nexocrm-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false        # se escribe en el panel de Render, nunca en el repositorio
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 8h
+      - key: CLIENT_URL
+        sync: false        # URL pública del frontend en Vercel, sin "/" final

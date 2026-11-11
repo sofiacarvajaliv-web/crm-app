@@ -1,0 +1,50 @@
+from playwright.sync_api import sync_playwright
+results=[]
+def ok(n,c): results.append(c); print(("PASS " if c else "FAIL ")+n)
+with sync_playwright() as p:
+    b=p.chromium.launch(); ctx=b.new_context(viewport={'width':1500,'height':860}, timezone_id='America/Bogota', locale='es-CO'); pg=ctx.new_page()
+    errs=[]; pg.on("pageerror", lambda e: errs.append(str(e)))
+    pg.goto("http://127.0.0.1:5173/login"); pg.wait_for_selector("text=Inicia sesión")
+    pg.fill("input[type=email]","admin@demo.test"); pg.fill("input[type=password]","DemoClave123"); pg.click("button:has-text('Entrar')"); pg.wait_for_selector("text=Hola,")
+    # --- zona horaria: fecha de cierre sin hora
+    pg.click("nav >> text=Oportunidades"); pg.wait_for_selector("[data-testid=opp-card]")
+    pg.click("button:has-text('Nueva oportunidad') >> nth=0"); f=pg.locator("[role=dialog]"); f.locator("input").first.fill("Prueba huso horario")
+    pg.wait_for_selector("[role=dialog] select option:has-text('Carlos Ruiz')", state="attached")
+    f.locator("select").nth(0).select_option(label="Carlos Ruiz"); f.locator("input[type=date]").fill("2026-12-15")
+    pg.click("button:has-text('Crear oportunidad')"); pg.wait_for_selector("text=Prueba huso horario")
+    txt=pg.locator("[data-testid=opp-card]:has-text('Prueba huso horario')").inner_text()
+    ok("fecha de cierre 15 dic se muestra como 15 (no 14) en hora de Colombia", "15" in txt.split("Cierre:")[1][:8])
+    pg.locator("[data-testid=opp-card]:has-text('Prueba huso horario') button:has-text('Eliminar')").click(); pg.click("[role=dialog] >> button:has-text('Eliminar')")
+    # --- Actividades
+    pg.click("nav >> text=Actividades"); pg.wait_for_selector("tbody tr")
+    ok("lista de actividades reales", pg.locator("tbody tr").count()==10)
+    pg.click("button:has-text('Registrar actividad') >> nth=0"); pg.click("[role=dialog] >> button:has-text('Registrar actividad')")
+    ok("validación: cliente y descripción obligatorios", "Selecciona un cliente" in pg.locator("[role=dialog] span.text-danger").all_inner_texts() and "Describe la actividad" in pg.locator("[role=dialog] span.text-danger").all_inner_texts())
+    f=pg.locator("[role=dialog]"); pg.wait_for_selector("[role=dialog] select option:has-text('Marta Gómez')", state="attached")
+    f.locator("select").nth(0).select_option(label="Marta Gómez"); f.locator("select").nth(1).select_option("reunion")
+    f.locator("textarea").fill("Reunión de cierre UI"); f.locator("input").nth(2).fill("Firmará la próxima semana")
+    from datetime import date
+    f.locator("input[type=date]").fill(date.today().isoformat())   # seguimiento "hoy": debe ser válido
+    pg.click("[role=dialog] >> button:has-text('Registrar actividad')"); pg.wait_for_selector("td >> text=Reunión de cierre UI")
+    ok("registrar actividad (seguimiento el mismo día es válido)", True)
+    pg.select_option("select[aria-label='Filtrar por tipo']","reunion"); pg.wait_for_function("[...document.querySelectorAll('tbody tr')].every(r=>r.innerText.includes('Reunión'))")
+    ok("filtro por tipo", pg.locator("tbody tr").count()>=1)
+    pg.select_option("select[aria-label='Filtrar por tipo']",""); pg.wait_for_function("document.querySelectorAll('tbody tr').length==10")
+    pg.fill("input[type=search]","cierre UI"); pg.wait_for_function("document.querySelectorAll('tbody tr').length==1"); ok("búsqueda", True)
+    pg.locator("tr:has-text('Reunión de cierre UI') button:has-text('Editar')").click(); pg.locator("[role=dialog] input").nth(2).fill("Pidió descuento")
+    pg.click("button:has-text('Guardar cambios')"); pg.wait_for_selector("text=Resultado: Pidió descuento"); ok("editar actividad", True)
+    # --- historial desde cliente
+    pg.click("nav >> text=Clientes"); pg.wait_for_selector("td >> text=Marta Gómez")
+    pg.locator("tr:has-text('Marta Gómez') button:has-text('Historial')").click(); pg.wait_for_selector("[role=dialog] >> text=Reunión de cierre UI")
+    ok("la actividad aparece en el historial del cliente", True)
+    pg.click("[role=dialog] >> button:has-text('Registrar actividad')"); pg.wait_for_selector("input[disabled]")
+    pg.locator("[role=dialog] >> nth=1").locator("textarea").fill("Seguimiento desde el historial")
+    pg.locator("[role=dialog] >> nth=1").locator("button:has-text('Registrar actividad')").click()
+    pg.wait_for_selector("text=Seguimiento desde el historial"); ok("registrar actividad desde el historial (cliente fijo)", True)
+    # --- eliminar
+    pg.goto("http://127.0.0.1:5173/actividades"); pg.wait_for_selector("tbody tr"); pg.fill("input[type=search]","cierre UI"); pg.wait_for_function("document.querySelectorAll('tbody tr').length==1")
+    pg.click("tbody button:has-text('Eliminar')"); pg.click("[role=dialog] >> button:has-text('Eliminar')"); pg.wait_for_selector("text=No hay actividades para mostrar"); ok("eliminar con confirmación", True)
+    pg.fill("input[type=search]","Seguimiento desde"); pg.wait_for_selector("tbody tr"); pg.click("tbody button:has-text('Eliminar')"); pg.click("[role=dialog] >> button:has-text('Eliminar')")
+    ok("sin errores de JavaScript", not errs)
+    b.close()
+print("RESUMEN:", sum(results), "/", len(results))

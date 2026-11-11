@@ -1,0 +1,40 @@
+from playwright.sync_api import sync_playwright
+results=[]
+def ok(n,c): results.append(c); print(("PASS " if c else "FAIL ")+n)
+def login(pg,email,pw="DemoClave123"):
+    pg.goto("http://127.0.0.1:5173/login"); pg.wait_for_selector("text=Inicia sesión")
+    pg.fill("input[type=email]",email); pg.fill("input[type=password]",pw); pg.click("button:has-text('Entrar')")
+with sync_playwright() as p:
+    b=p.chromium.launch(); pg=b.new_context(viewport={'width':1500,'height':860}).new_page()
+    errs=[]; pg.on("pageerror", lambda e: errs.append(str(e)))
+    login(pg,"admin@demo.test"); pg.wait_for_selector("text=Hola,")
+    pg.click("nav >> text=Usuarios"); pg.wait_for_selector("tbody tr")
+    ok("el administrador ve el módulo con los usuarios reales", pg.locator("tbody tr").count()>=3)
+    ok("su propia fila no ofrece desactivarse", pg.locator("tr:has-text('(tú)') button:has-text('Desactivar')").count()==0)
+    pg.click("button:has-text('Nuevo usuario') >> nth=0"); pg.click("[role=dialog] >> button:has-text('Crear usuario')")
+    ok("validación: nombre, correo y contraseña", set(pg.locator("[role=dialog] span.text-danger").all_inner_texts())>={"Escribe el nombre","Ingresa un correo válido","Mínimo 8 caracteres"})
+    f=pg.locator("[role=dialog]"); f.locator("input").nth(0).fill("Nuevo Asesor UI"); f.locator("input[type=email]").fill("ui@demo.test"); f.locator("input[type=password]").fill("soloLetras")
+    pg.click("[role=dialog] >> button:has-text('Crear usuario')"); ok("contraseña sin números es rechazada", pg.locator("text=Debe incluir letras y números").count()==1)
+    f.locator("input[type=password]").fill("Clave12345"); pg.click("[role=dialog] >> button:has-text('Crear usuario')"); pg.wait_for_selector("td >> text=Nuevo Asesor UI")
+    ok("crear usuario asesor", True)
+    pg.click("button:has-text('Nuevo usuario') >> nth=0"); f=pg.locator("[role=dialog]"); f.locator("input").nth(0).fill("Repetido"); f.locator("input[type=email]").fill("ui@demo.test"); f.locator("input[type=password]").fill("Clave12345")
+    pg.click("[role=dialog] >> button:has-text('Crear usuario')"); pg.wait_for_selector("text=Ya existe un registro"); ok("correo duplicado muestra error", True); pg.click("[role=dialog] >> button:has-text('Cancelar')")
+    # el nuevo asesor entra, sin ver Usuarios
+    a=b.new_context(viewport={'width':1500,'height':860}).new_page(); login(a,"ui@demo.test","Clave12345"); a.wait_for_selector("text=Hola,")
+    ok("el asesor no ve 'Usuarios' en el menú", a.locator("nav >> text=Usuarios").count()==0)
+    a.goto("http://127.0.0.1:5173/usuarios"); a.wait_for_selector("text=Hola,"); ok("el asesor no puede abrir /usuarios (lo devuelve al panel)", a.url.rstrip("/").endswith("5173"))
+    # desactivar -> no puede entrar; reactivar -> sí
+    pg.fill("input[type=search]","ui@demo"); pg.wait_for_function("document.querySelectorAll('tbody tr').length==1")
+    pg.click("tbody button:has-text('Desactivar')"); pg.click("[role=dialog] >> button:has-text('Desactivar')"); pg.wait_for_selector("td >> text=Inactivo")
+    a2=b.new_context().new_page(); login(a2,"ui@demo.test","Clave12345"); a2.wait_for_selector("text=Credenciales inválidas"); ok("usuario desactivado no puede iniciar sesión", True)
+    a.reload(); a.wait_for_url("**/login"); ok("su sesión abierta también se cierra", True)
+    pg.click("tbody button:has-text('Reactivar')"); pg.wait_for_selector("td >> text=Activo")
+    a3=b.new_context().new_page(); login(a3,"ui@demo.test","Clave12345"); a3.wait_for_selector("text=Hola,"); ok("reactivado vuelve a entrar", True)
+    # editar rol y contraseña
+    pg.locator("tbody tr").first.locator("button:has-text('Editar')").click(); f=pg.locator("[role=dialog]")
+    f.locator("select").select_option("admin"); f.locator("input[type=password]").fill("OtraClave123"); pg.click("[role=dialog] >> button:has-text('Guardar cambios')")
+    pg.wait_for_selector("td >> text=Administrador"); a4=b.new_context().new_page(); login(a4,"ui@demo.test","OtraClave123"); a4.wait_for_selector("text=Hola,")
+    ok("editar rol y contraseña (entra con la nueva)", a4.locator("nav >> text=Usuarios").count()==1)
+    ok("sin errores de JavaScript", not errs)
+    b.close()
+print("RESUMEN:", sum(results), "/", len(results))
